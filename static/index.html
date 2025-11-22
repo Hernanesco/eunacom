@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador EUNACOM</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 1rem auto; max-width: 900px; padding: 0 1rem; }
+      h1 { color: #144b8b; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+      .question { margin-bottom: 1rem; }
+      .options button { display: block; margin: 0.25rem 0; width: 100%; text-align: left; padding: 0.5rem; }
+      .badge { background: #144b8b; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+      .feedback { margin-top: 0.5rem; font-weight: bold; }
+      .weak { color: #a80000; }
+    </style>
+  </head>
+  <body>
+    <h1>Simulador EUNACOM</h1>
+    <p>Autenticación básica para guardar tu progreso.</p>
+    <div class="card">
+      <h2>Registro / Inicio de sesión</h2>
+      <label>Usuario: <input id="username" /></label>
+      <label>Contraseña: <input id="password" type="password" /></label>
+      <button onclick="register()">Registrarme</button>
+      <button onclick="login()">Iniciar sesión</button>
+      <div id="auth-status"></div>
+    </div>
+
+    <div class="card">
+      <h2>Buscar preguntas</h2>
+      <div>
+        <label>Categoría: <input id="category-filter" placeholder="Cardiología" /></label>
+        <label>Reconstrucción/Banco: <input id="source-filter" placeholder="Reconstrucción Eunacom julio 2019" /></label>
+        <label>Tema: <input id="topic-filter" placeholder="Infección urinaria" /></label>
+        <button onclick="loadQuestions()">Buscar</button>
+      </div>
+      <div id="question-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Simulador rápido</h2>
+      <label>Total de preguntas: <input id="exam-total" type="number" value="5" /></label>
+      <button onclick="startExam()">Iniciar simulador</button>
+      <div id="exam"></div>
+    </div>
+
+    <div class="card">
+      <h2>Progreso y áreas débiles</h2>
+      <button onclick="loadProgress()">Actualizar progreso</button>
+      <div id="progress"></div>
+    </div>
+
+    <script>
+      let token = null;
+
+      async function register() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        document.getElementById('auth-status').innerText = data.error || 'Usuario creado';
+      }
+
+      async function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        if (data.token) {
+          token = data.token;
+          document.getElementById('auth-status').innerText = 'Sesión iniciada';
+        } else {
+          document.getElementById('auth-status').innerText = data.error || 'Error de sesión';
+        }
+      }
+
+      function renderQuestions(containerId, questions) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        questions.forEach((q) => {
+          const card = document.createElement('div');
+          card.className = 'question';
+          card.innerHTML = `<div><span class="badge">${q.category}</span> ${q.source} · ${q.topic}</div><p>${q.stem}</p>`;
+          const options = document.createElement('div');
+          options.className = 'options';
+          q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => submit(q.id, idx, card);
+            options.appendChild(btn);
+          });
+          card.appendChild(options);
+          container.appendChild(card);
+        });
+      }
+
+      async function loadQuestions() {
+        const category = document.getElementById('category-filter').value;
+        const source = document.getElementById('source-filter').value;
+        const topic = document.getElementById('topic-filter').value;
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (source) params.append('source', source);
+        if (topic) params.append('topic', topic);
+        const res = await fetch(`/api/questions?${params.toString()}`);
+        const data = await res.json();
+        renderQuestions('question-list', data.questions);
+      }
+
+      async function startExam() {
+        const total = parseInt(document.getElementById('exam-total').value, 10) || 5;
+        const res = await fetch('/api/exam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ total }) });
+        const data = await res.json();
+        renderQuestions('exam', data.questions);
+      }
+
+      async function submit(questionId, selected, container) {
+        if (!token) {
+          alert('Debes iniciar sesión para guardar progreso');
+          return;
+        }
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, question_id: questionId, selected })
+        });
+        const data = await res.json();
+        const feedback = document.createElement('div');
+        feedback.className = 'feedback';
+        if (data.correct) {
+          feedback.innerText = '¡Correcto!';
+          feedback.style.color = 'green';
+        } else {
+          feedback.innerText = `Incorrecto. La respuesta correcta es la opción ${data.correct_index + 1}.`;
+          feedback.style.color = 'red';
+        }
+        const detail = document.createElement('div');
+        detail.innerText = data.justification;
+        container.appendChild(feedback);
+        container.appendChild(detail);
+      }
+
+      async function loadProgress() {
+        if (!token) {
+          alert('Debes iniciar sesión');
+          return;
+        }
+        const res = await fetch(`/api/progress?token=${token}`);
+        const data = await res.json();
+        const container = document.getElementById('progress');
+        container.innerHTML = '';
+        const list = document.createElement('ul');
+        data.breakdown.forEach((item) => {
+          const li = document.createElement('li');
+          li.innerText = `${item.category} / ${item.topic}: ${item.correct} buenas, ${item.incorrect} malas (precisión ${item.accuracy * 100}%)`;
+          list.appendChild(li);
+        });
+        container.appendChild(list);
+        if (data.weak_areas.length) {
+          const weak = document.createElement('div');
+          weak.className = 'weak';
+          weak.innerHTML = '<strong>Áreas débiles:</strong> ' + data.weak_areas.map((w) => `${w.category} - ${w.topic}`).join(', ');
+          container.appendChild(weak);
+        }
+      }
+    </script>
+  </body>
+</html>
