@@ -1,169 +1,143 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simulador EUNACOM</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 1rem auto; max-width: 900px; padding: 0 1rem; }
-      h1 { color: #144b8b; }
-      .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-      .question { margin-bottom: 1rem; }
-      .options button { display: block; margin: 0.25rem 0; width: 100%; text-align: left; padding: 0.5rem; }
-      .badge { background: #144b8b; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
-      .feedback { margin-top: 0.5rem; font-weight: bold; }
-      .weak { color: #a80000; }
-    </style>
-  </head>
-  <body>
-    <h1>Simulador EUNACOM</h1>
-    <p>Autenticación básica para guardar tu progreso.</p>
-    <div class="card">
-      <h2>Registro / Inicio de sesión</h2>
-      <label>Usuario: <input id="username" /></label>
-      <label>Contraseña: <input id="password" type="password" /></label>
-      <button onclick="register()">Registrarme</button>
-      <button onclick="login()">Iniciar sesión</button>
-      <div id="auth-status"></div>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador EUNACOM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Simulador EUNACOM</div>
+    <div class="user-chip" id="user-chip">Sesión no iniciada</div>
+  </header>
 
-    <div class="card">
-      <h2>Buscar preguntas</h2>
-      <div>
-        <label>Categoría: <input id="category-filter" placeholder="Cardiología" /></label>
-        <label>Reconstrucción/Banco: <input id="source-filter" placeholder="Reconstrucción Eunacom julio 2019" /></label>
-        <label>Tema: <input id="topic-filter" placeholder="Infección urinaria" /></label>
-        <button onclick="loadQuestions()">Buscar</button>
+  <main class="layout">
+    <section class="panel auth">
+      <h2>Cuenta local</h2>
+      <p class="muted">Tus datos se guardan solo en este navegador mediante <code>localStorage</code>. No se envían a ningún servidor.</p>
+      <div class="auth-forms">
+        <form id="register-form" class="card" autocomplete="off">
+          <h3>Registrar</h3>
+          <label>Usuario
+            <input type="text" name="username" required>
+          </label>
+          <label>Contraseña
+            <input type="password" name="password" required>
+          </label>
+          <button type="submit" class="btn primary">Crear cuenta</button>
+          <p class="tiny muted">Si ya existe, se actualizará la contraseña.</p>
+        </form>
+        <form id="login-form" class="card" autocomplete="off">
+          <h3>Iniciar sesión</h3>
+          <label>Usuario
+            <input type="text" name="username" required>
+          </label>
+          <label>Contraseña
+            <input type="password" name="password" required>
+          </label>
+          <button type="submit" class="btn success">Entrar</button>
+          <button type="button" id="logout-btn" class="btn ghost">Cerrar sesión</button>
+          <div id="auth-message" class="tiny"></div>
+        </form>
       </div>
-      <div id="question-list"></div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>Simulador rápido</h2>
-      <label>Total de preguntas: <input id="exam-total" type="number" value="5" /></label>
-      <button onclick="startExam()">Iniciar simulador</button>
-      <div id="exam"></div>
-    </div>
+    <section class="panel modes">
+      <h2>Modos de estudio</h2>
+      <div class="mode-switch">
+        <button id="mode-bank" class="chip active">Banco libre</button>
+        <button id="mode-exam" class="chip">Simulador EUNACOM</button>
+        <button id="mode-performance" class="chip">Mi desempeño</button>
+        <label class="theme-toggle">
+          <input type="checkbox" id="theme-toggle">
+          <span>Modo oscuro</span>
+        </label>
+      </div>
+    </section>
 
-    <div class="card">
-      <h2>Progreso y áreas débiles</h2>
-      <button onclick="loadProgress()">Actualizar progreso</button>
-      <div id="progress"></div>
-    </div>
+    <section class="panel" id="bank-panel">
+      <header class="panel-header">
+        <div>
+          <h2>Banco libre</h2>
+          <p class="muted">Filtra por categoría, fuente o tema. Al responder ves inmediatamente la justificación.</p>
+        </div>
+        <div class="filters">
+          <label>Categoría
+            <select id="filter-category">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <label>Fuente
+            <select id="filter-source">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <label>Tema (texto)
+            <input type="text" id="filter-topic" placeholder="Ej: insuficiencia cardíaca">
+          </label>
+          <button id="apply-filters" class="btn">Aplicar filtros</button>
+        </div>
+      </header>
+      <div id="bank-list" class="question-list"></div>
+    </section>
 
-    <script>
-      let token = null;
+    <section class="panel hidden" id="exam-panel">
+      <header class="panel-header">
+        <div>
+          <h2>Simulador EUNACOM</h2>
+          <p class="muted">Configura la duración y la selección de preguntas. Puedes pausar y marcar preguntas para revisión.</p>
+        </div>
+        <form id="exam-config" class="config-grid">
+          <label>Cantidad de preguntas
+            <input type="number" id="exam-count" value="20" min="5" max="200">
+          </label>
+          <label>Duración (minutos)
+            <input type="number" id="exam-duration" value="180" min="30" max="240">
+          </label>
+          <label>Filtrar por categoría
+            <select id="exam-category">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <label>Filtrar por fuente
+            <select id="exam-source">
+              <option value="">Todas</option>
+            </select>
+          </label>
+          <button type="submit" class="btn primary">Iniciar simulador</button>
+          <button type="button" id="weak-drill" class="btn ghost">Mini simulador (áreas débiles)</button>
+        </form>
+      </header>
+      <div class="exam-grid">
+        <div class="exam-left">
+          <div class="timer" id="timer">--:--</div>
+          <div class="nav" id="exam-nav"></div>
+          <div class="actions">
+            <button id="pause-btn" class="btn">Pausar</button>
+            <button id="finish-btn" class="btn danger">Finalizar examen</button>
+          </div>
+          <div id="exam-summary"></div>
+        </div>
+        <div class="exam-main">
+          <div id="exam-question" class="question-card"></div>
+        </div>
+      </div>
+    </section>
 
-      async function register() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-        const data = await res.json();
-        document.getElementById('auth-status').innerText = data.error || 'Usuario creado';
-      }
+    <section class="panel hidden" id="performance-panel">
+      <header class="panel-header">
+        <div>
+          <h2>Mi desempeño</h2>
+          <p class="muted">Resumen global, por categoría/tema y áreas débiles para enfocar tu estudio.</p>
+        </div>
+        <button id="refresh-performance" class="btn">Actualizar</button>
+      </header>
+      <div id="performance-content" class="performance"></div>
+    </section>
+  </main>
 
-      async function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-        const data = await res.json();
-        if (data.token) {
-          token = data.token;
-          document.getElementById('auth-status').innerText = 'Sesión iniciada';
-        } else {
-          document.getElementById('auth-status').innerText = data.error || 'Error de sesión';
-        }
-      }
-
-      function renderQuestions(containerId, questions) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-        questions.forEach((q) => {
-          const card = document.createElement('div');
-          card.className = 'question';
-          card.innerHTML = `<div><span class="badge">${q.category}</span> ${q.source} · ${q.topic}</div><p>${q.stem}</p>`;
-          const options = document.createElement('div');
-          options.className = 'options';
-          q.options.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.innerText = opt;
-            btn.onclick = () => submit(q.id, idx, card);
-            options.appendChild(btn);
-          });
-          card.appendChild(options);
-          container.appendChild(card);
-        });
-      }
-
-      async function loadQuestions() {
-        const category = document.getElementById('category-filter').value;
-        const source = document.getElementById('source-filter').value;
-        const topic = document.getElementById('topic-filter').value;
-        const params = new URLSearchParams();
-        if (category) params.append('category', category);
-        if (source) params.append('source', source);
-        if (topic) params.append('topic', topic);
-        const res = await fetch(`/api/questions?${params.toString()}`);
-        const data = await res.json();
-        renderQuestions('question-list', data.questions);
-      }
-
-      async function startExam() {
-        const total = parseInt(document.getElementById('exam-total').value, 10) || 5;
-        const res = await fetch('/api/exam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ total }) });
-        const data = await res.json();
-        renderQuestions('exam', data.questions);
-      }
-
-      async function submit(questionId, selected, container) {
-        if (!token) {
-          alert('Debes iniciar sesión para guardar progreso');
-          return;
-        }
-        const res = await fetch('/api/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, question_id: questionId, selected })
-        });
-        const data = await res.json();
-        const feedback = document.createElement('div');
-        feedback.className = 'feedback';
-        if (data.correct) {
-          feedback.innerText = '¡Correcto!';
-          feedback.style.color = 'green';
-        } else {
-          feedback.innerText = `Incorrecto. La respuesta correcta es la opción ${data.correct_index + 1}.`;
-          feedback.style.color = 'red';
-        }
-        const detail = document.createElement('div');
-        detail.innerText = data.justification;
-        container.appendChild(feedback);
-        container.appendChild(detail);
-      }
-
-      async function loadProgress() {
-        if (!token) {
-          alert('Debes iniciar sesión');
-          return;
-        }
-        const res = await fetch(`/api/progress?token=${token}`);
-        const data = await res.json();
-        const container = document.getElementById('progress');
-        container.innerHTML = '';
-        const list = document.createElement('ul');
-        data.breakdown.forEach((item) => {
-          const li = document.createElement('li');
-          li.innerText = `${item.category} / ${item.topic}: ${item.correct} buenas, ${item.incorrect} malas (precisión ${item.accuracy * 100}%)`;
-          list.appendChild(li);
-        });
-        container.appendChild(list);
-        if (data.weak_areas.length) {
-          const weak = document.createElement('div');
-          weak.className = 'weak';
-          weak.innerHTML = '<strong>Áreas débiles:</strong> ' + data.weak_areas.map((w) => `${w.category} - ${w.topic}`).join(', ');
-          container.appendChild(weak);
-        }
-      }
-    </script>
-  </body>
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
 </html>
