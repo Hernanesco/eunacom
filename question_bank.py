@@ -3,7 +3,8 @@ import random
 from pathlib import Path
 from typing import Dict, List, Optional
 
-DATA_PATH = Path("data/questions.json")
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data/questions.json"
 
 
 class QuestionBank:
