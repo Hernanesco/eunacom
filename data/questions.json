@@ -1,0 +1,92 @@
+[
+  {
+    "id": "cardio-2019-01",
+    "stem": "Un paciente de 65 años consulta por dolor torácico típico y elevación del ST en cara inferior. ¿Cuál es la conducta inicial más apropiada?",
+    "options": [
+      "Administrar aspirina y trasladar para angioplastia primaria",
+      "Solicitar ecocardiograma de esfuerzo",
+      "Iniciar bloqueador cálcico y observar",
+      "Indicar anticoagulación oral y alta"
+    ],
+    "answer_index": 0,
+    "justification": "En un síndrome coronario agudo con elevación del ST, la reperfusión inmediata con angioplastia primaria asociada a antiagregación reduce mortalidad.",
+    "category": "Cardiología",
+    "topic": "Síndrome coronario agudo",
+    "source": "Reconstrucción Eunacom julio 2019"
+  },
+  {
+    "id": "resp-2020-02",
+    "stem": "Lactante de 3 meses con fiebre, tiraje y saturación de 90%. A la auscultación presenta sibilancias difusas. ¿Cuál es el diagnóstico más probable?",
+    "options": [
+      "Neumonía bacteriana",
+      "Bronquiolitis",
+      "Croup viral",
+      "Aspiración de cuerpo extraño"
+    ],
+    "answer_index": 1,
+    "justification": "En lactantes menores de 12 meses con cuadro febril y sibilancias difusas, la bronquiolitis viral es el diagnóstico más frecuente.",
+    "category": "Pediatría",
+    "topic": "Bronquiolitis",
+    "source": "Banco pediatría"
+  },
+  {
+    "id": "nefro-itu-01",
+    "stem": "Adolescente de 14 años con fiebre, dolor lumbar derecho y puñopercusión positiva. El sedimento muestra leucocituria y bacteriuria. ¿Cuál es el estudio inicial recomendado?",
+    "options": [
+      "Pielografía endovenosa",
+      "Urocultivo y ecografía renal",
+      "Cistoscopia",
+      "Tomografía abdominal con contraste"
+    ],
+    "answer_index": 1,
+    "justification": "En una pielonefritis aguda febril se debe confirmar con urocultivo y evaluar complicaciones o malformaciones con ecografía renal.",
+    "category": "Nefrología",
+    "topic": "Infección urinaria",
+    "source": "Reconstrucción Eunacom julio 2019"
+  },
+  {
+    "id": "gine-hem-01",
+    "stem": "Gestante de 32 semanas presenta metrorragia roja indolora. ¿Cuál es el diagnóstico más probable?",
+    "options": [
+      "Desprendimiento prematuro de placenta",
+      "Placenta previa",
+      "Rotura uterina",
+      "Vasa previa"
+    ],
+    "answer_index": 1,
+    "justification": "La metrorragia roja indolora en el tercer trimestre es típica de placenta previa hasta demostrar lo contrario.",
+    "category": "Obstetricia y ginecología",
+    "topic": "Hemorragia del tercer trimestre",
+    "source": "Banco obstetricia"
+  },
+  {
+    "id": "neuro-epilepsia-01",
+    "stem": "Mujer de 25 años con crisis tónico-clónicas generalizadas. ¿Cuál es el fármaco de primera línea para monoterapia?",
+    "options": [
+      "Levetiracetam",
+      "Fenitoína",
+      "Topiramato",
+      "Lamotrigina"
+    ],
+    "answer_index": 0,
+    "justification": "Levetiracetam es una opción segura y eficaz como monoterapia inicial en crisis tónico-clónicas generalizadas en mujeres en edad fértil.",
+    "category": "Neurología",
+    "topic": "Epilepsia",
+    "source": "Banco neurología"
+  },
+  {
+    "id": "salud-publica-01",
+    "stem": "Durante un brote de influenza, ¿cuál es la medida más costo-efectiva para reducir la incidencia comunitaria?",
+    "options": [
+      "Cierre de escuelas por dos semanas",
+      "Aislamiento obligatorio domiciliario de todos los contactos",
+      "Vacunación masiva de la población objetivo",
+      "Quimioprofilaxis con antivirales para toda la comunidad"
+    ],
+    "answer_index": 2,
+    "justification": "La vacunación anual dirigida a la población objetivo es la intervención con mejor balance costo-efectividad para disminuir la incidencia y gravedad de influenza.",
+    "category": "Salud Pública",
+    "topic": "Inmunizaciones",
+    "source": "Banco salud pública"
+  }
+]
