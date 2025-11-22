@@ -8,7 +8,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from database import authenticate_user, create_session, create_user, get_topic_breakdown, get_user_id_for_token, init_db, record_result
+from database import authenticate_user, create_session, get_topic_breakdown, get_user_id_for_token, init_db, record_result
 from question_bank import bank
 
 init_db()
@@ -34,7 +34,6 @@ __all__ = [
     "authenticate_user",
     "bank",
     "create_session",
-    "create_user",
     "get_topic_breakdown",
     "get_user_id_for_token",
     "init_db",

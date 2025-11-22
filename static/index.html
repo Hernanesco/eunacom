@@ -19,10 +19,9 @@
     <h1>Simulador EUNACOM</h1>
     <p>Autenticación básica para guardar tu progreso.</p>
     <div class="card">
-      <h2>Registro / Inicio de sesión</h2>
+      <h2>Inicio de sesión</h2>
       <label>Usuario: <input id="username" /></label>
       <label>Contraseña: <input id="password" type="password" /></label>
-      <button onclick="register()">Registrarme</button>
       <button onclick="login()">Iniciar sesión</button>
       <div id="auth-status"></div>
     </div>
@@ -53,14 +52,6 @@
 
     <script>
       let token = null;
-
-      async function register() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const res = await fetch('/.netlify/functions/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-        const data = await res.json();
-        document.getElementById('auth-status').innerText = data.error || 'Usuario creado';
-      }
 
       async function login() {
         const username = document.getElementById('username').value;

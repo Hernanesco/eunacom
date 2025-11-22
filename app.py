@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from flask import Flask, jsonify, request, send_from_directory
 
-from database import authenticate_user, create_session, create_user, get_topic_breakdown, get_user_id_for_token, init_db, record_result
+from database import authenticate_user, create_session, get_topic_breakdown, get_user_id_for_token, init_db, record_result
 from question_bank import bank
 
 app = Flask(__name__, static_folder="static")
@@ -18,19 +18,6 @@ def bootstrap() -> None:
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
-
-
-@app.route("/api/register", methods=["POST"])
-def register():
-    payload = request.get_json(force=True)
-    username = payload.get("username", "").strip()
-    password = payload.get("password", "")
-    if not username or not password:
-        return jsonify({"error": "Debe ingresar usuario y contraseña"}), 400
-    created = create_user(username, password)
-    if not created:
-        return jsonify({"error": "El usuario ya existe"}), 400
-    return jsonify({"status": "ok"})
 
 
 @app.route("/api/login", methods=["POST"])
