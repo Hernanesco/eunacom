@@ -9,10 +9,17 @@ from question_bank import bank
 
 app = Flask(__name__, static_folder="static")
 
+_bootstrapped = False
 
-@app.before_first_request
+
 def bootstrap() -> None:
-    init_db()
+    global _bootstrapped
+    if not _bootstrapped:
+        init_db()
+        _bootstrapped = True
+
+
+app.before_request(bootstrap)
 
 
 @app.route("/")
