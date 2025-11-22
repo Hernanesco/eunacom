@@ -57,7 +57,7 @@
       async function register() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const res = await fetch('/.netlify/functions/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
         const data = await res.json();
         document.getElementById('auth-status').innerText = data.error || 'Usuario creado';
       }
@@ -65,7 +65,7 @@
       async function login() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const res = await fetch('/.netlify/functions/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
         const data = await res.json();
         if (data.token) {
           token = data.token;
@@ -103,14 +103,14 @@
         if (category) params.append('category', category);
         if (source) params.append('source', source);
         if (topic) params.append('topic', topic);
-        const res = await fetch(`/api/questions?${params.toString()}`);
+        const res = await fetch(`/.netlify/functions/questions?${params.toString()}`);
         const data = await res.json();
         renderQuestions('question-list', data.questions);
       }
 
       async function startExam() {
         const total = parseInt(document.getElementById('exam-total').value, 10) || 5;
-        const res = await fetch('/api/exam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ total }) });
+        const res = await fetch('/.netlify/functions/exam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ total }) });
         const data = await res.json();
         renderQuestions('exam', data.questions);
       }
@@ -120,7 +120,7 @@
           alert('Debes iniciar sesión para guardar progreso');
           return;
         }
-        const res = await fetch('/api/submit', {
+        const res = await fetch('/.netlify/functions/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, question_id: questionId, selected })
@@ -146,7 +146,7 @@
           alert('Debes iniciar sesión');
           return;
         }
-        const res = await fetch(`/api/progress?token=${token}`);
+        const res = await fetch(`/.netlify/functions/progress?token=${token}`);
         const data = await res.json();
         const container = document.getElementById('progress');
         container.innerHTML = '';
